@@ -17,43 +17,119 @@
 
 
 -- =========================================================================
--- Q1 | <the question, in words a non-technical person would ask>
+-- Q1 | Query 1: Compare average real GDP growth across government composition
+-- categories. Also returns the number of country-year observations in each
+-- category to provide context for the comparison.
 -- =========================================================================
 -- Hypothesis: <what you expected before running it>
 -- Finding:    <what came back, with the number that matters>
 
 
-
-
--- =========================================================================
--- Q2 |
--- =========================================================================
--- Hypothesis:
--- Finding:
-
-
-
-
--- =========================================================================
--- Q3 |
--- =========================================================================
--- Hypothesis:
--- Finding:
-
+SELECT
+    gt.government_type,
+    ROUND(AVG(cy.gdp_growth), 2) AS avg_gdp_growth,
+    COUNT(*) AS observations
+FROM country_year AS cy
+INNER JOIN government_types AS gt
+    ON cy.government_type_id = gt.government_type_id
+GROUP BY gt.government_type_id, gt.government_type
+ORDER BY gt.government_type_id;
 
 
 
 -- =========================================================================
--- Q4 |
+-- Q2 |Query 2: Compare average unemployment across government composition
+-- categories and show the number of observations in each category.
 -- =========================================================================
 -- Hypothesis:
 -- Finding:
 
+SELECT
+    gt.government_type,
+    ROUND(AVG(cy.unemployment), 2) AS avg_unemployment,
+    COUNT(*) AS observations
+FROM country_year AS cy
+INNER JOIN government_types AS gt
+    ON cy.government_type_id = gt.government_type_id
+GROUP BY gt.government_type_id, gt.government_type
+ORDER BY gt.government_type_id;
+
 
 
 
 -- =========================================================================
--- Q5 |
+-- Q3 |Query 3: Compare average inflation across government composition
+-- categories and show the number of observations in each category.
 -- =========================================================================
 -- Hypothesis:
 -- Finding:
+
+SELECT
+    gt.government_type,
+    ROUND(AVG(cy.inflation), 2) AS avg_inflation,
+    COUNT(*) AS observations
+FROM country_year AS cy
+INNER JOIN government_types AS gt
+    ON cy.government_type_id = gt.government_type_id
+GROUP BY gt.government_type_id, gt.government_type
+ORDER BY gt.government_type_id;
+
+
+
+-- =========================================================================
+-- Q4 |Country-level GDP growth by government composition
+-- =========================================================================
+-- Hypothesis:
+-- Finding:
+SELECT
+    c.country_name,
+    gt.government_type,
+    ROUND(AVG(cy.gdp_growth), 2) AS avg_gdp_growth,
+    COUNT(*) AS observations
+FROM country_year AS cy
+INNER JOIN countries AS c
+    ON cy.country_id = c.country_id
+INNER JOIN government_types AS gt
+    ON cy.government_type_id = gt.government_type_id
+GROUP BY
+    c.country_name,
+    gt.government_type_id,
+    gt.government_type
+HAVING COUNT(*) >= 3
+ORDER BY
+    c.country_name,
+    gt.government_type_id;
+
+
+
+
+-- =========================================================================
+-- Q5 | Query 5: Identify country-government type combinations whose average GDP
+-- growth is above the overall dataset average. Groups with fewer than three
+-- observations are excluded.
+-- =========================================================================
+-- Hypothesis:
+-- Finding:
+SELECT
+    c.country_name,
+    gt.government_type,
+    ROUND(AVG(cy.gdp_growth), 2) AS avg_gdp_growth,
+    COUNT(*) AS observations
+FROM country_year AS cy
+INNER JOIN countries AS c
+    ON cy.country_id = c.country_id
+INNER JOIN government_types AS gt
+    ON cy.government_type_id = gt.government_type_id
+GROUP BY
+    c.country_name,
+    gt.government_type_id,
+    gt.government_type
+HAVING
+    COUNT(*) >= 3
+    AND AVG(cy.gdp_growth) > (
+        SELECT AVG(gdp_growth)
+        FROM country_year
+    )
+ORDER BY
+    c.country_name,
+    gt.government_type_id;
